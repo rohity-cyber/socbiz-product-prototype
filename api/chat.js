@@ -5,24 +5,38 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'llama3-8b-8192',
-      max_tokens: 1000,
-      messages: req.body.messages,
-    }),
-  });
+  try {
+    const { messages, system, max_tokens } = req.body;
 
-  const data = await response.json();
+    // Combine system prompt into messages for Groq
+    const groqMessages = [];
+    if (system) {
+      groqMessages.push({ role: 'system', content: system });
+    }
+    groqMessages.push(...messages);
 
-  // Convert Groq response format to Anthropic format so your HTML still works
-  const converted = {
-    content: [{ type: 'text', text: data.choices?.[0]?.message?.content || '' }]
-  };
-  res.status(response.status).json(converted);
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192',
+        max_tokens: max_tokens || 1000,
+        messages: groqMessages,
+      }),
+    });
+
+    const data = await response.json();
+
+    // Convert Groq format back to Anthropic format
+    const converted = {
+      content: [{ type: 'text', text: data.choices?.[0]?.message?.content || '' }]
+    };
+
+    res.status(200).json(converted);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
