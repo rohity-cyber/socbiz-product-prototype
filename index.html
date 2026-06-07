@@ -1212,6 +1212,7 @@ Keep the acknowledgment warm, conversational and under 30 words. Make recommenda
       const narrative = splitIdx > -1 ? fullText.substring(0, splitIdx).trim() : fullText;
 
       textStream.textContent = narrative;
+      thinking.classList.remove('show');
 
       if (splitIdx > -1) {
         const jsonStr = fullText.substring(splitIdx + 16).trim();
@@ -1278,6 +1279,7 @@ RECOMMENDATIONS:
       const narrative = splitIdx > -1 ? fullText.substring(0, splitIdx).trim() : fullText;
 
       textStream.textContent = narrative;
+      thinking.classList.remove('show');
 
       if (splitIdx > -1) {
         const jsonStr = fullText.substring(splitIdx + 16).trim();
